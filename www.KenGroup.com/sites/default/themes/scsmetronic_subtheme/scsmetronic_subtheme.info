@@ -1,0 +1,8 @@
+name = scsmetronic_subtheme
+description = A subtheme created with base as scsmetronic theme.
+package = Core
+core = 7.x
+base theme = scsmetronic
+
+stylesheets[all][] = assets/css/style.css
+stylesheets[all][] = assets/css/themes/light.css

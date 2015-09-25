@@ -1,0 +1,161 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+
+
+/*
+ * get a flower by id and return the object
+ */
+//
+//function myservice_get_flower($fid) {
+//  return db_select('flower', 'f')->fields('f', array('fid', 'fname', 'fcolor'))->condition('fid', $fid)->execute()->fetchField();
+//}
+
+/**
+ * Implementation of hook_services_services().
+ */
+//function myservice_services_resources() {
+//  return array(
+//    'myservice' => array(
+//      'retrieve' => array(
+//        'help' => 'retrive a flower based on id',
+//        'file' => array('type' => 'inc', 'module' => 'myservice', 'name' => 'myservice'),
+//        'callback' => '_myservice_flower_retrieve',
+//        'access callback' => '_myservice_flower_retrive_access',
+//        'access arguments' => array('view'),
+//        'access arguments append' => TRUE,
+//        'args' => array(
+//          array(
+//            'name' => 'fid',
+//            'type' => 'serial',
+//            'description' => 'The id of the flower to get',
+//            'source' => array('path' => '0'),
+//            'optional' => FALSE,
+//          ),
+//        ),
+//      ),
+//    //end
+//    ),
+//  );
+//}
+
+/**
+ * Access callback for the note resource.
+ *
+ * @param string $op
+ *  The operation that's going to be performed.
+ * @param array $args
+ *  The arguments that will be passed to the callback.
+ * @return bool
+ *  Whether access is given or not.
+ */
+//function _myservice_flower_retrive_access($op, $args) {
+//  global $user;
+//  $access = FALSE;
+//
+//  dpm($args);
+//
+//  switch ($op) {
+//    case 'view':
+//      $note = myservice_get_flower($args[0]);
+//      $access = user_access('access content');
+//      // $access = $access || $note->uid == $user->uid && user_access('note resource view own notes');
+//      break;
+//  }
+//  return $access;
+//}
+//function myservice_get_message($message) {
+//  return $message;
+//}
+//function myservice_services_resources() {
+//
+//  $resources['myservices'] = array();
+//
+//  $resources['myservices'] = array(
+//    'actions' => array(
+//      'myservice_message' => array(
+//        'help' => 'display a message',
+//        'file' => array('type' => 'inc', 'module' => 'myservice', 'name' => 'myservice'),
+//        'callback' => '_myservice_display',
+//        'access callback' => TRUE,
+//      ),
+//    ),
+//  );
+//
+//  return $resources;
+//}
+function myservice_services_resources() {
+  // watchdog('php', 'cominghere in resource');
+  $testdata = array();
+  $testdata['test'] = array(
+    'actions' => array(
+      'my_message' => array(
+        'help' => 'dispaly a message',
+        'file' => array('type' => 'inc', 'module' => 'myservice', 'name' => 'myservice'),
+        'callback' => '_myservice_display',
+        'access callback' => 'give_accrss', //'services_access_menu',
+      ),
+      'create' => array(
+        'file' => array('type' => 'inc', 'module' => 'myservice', 'name' => 'myservice',),
+        'callback' => '_myservice_create_flower',
+        'help' => 'this will add flower to flower table',
+        'access callback' => 'services_access_menu',
+        'args' => array(
+          array(
+            'name' => 'test',
+            'source' =>array('data'=>'test'),
+            'description' => 'The flower data to create',
+            'type' => 'int',//array
+            'optional' => FALSE,
+          ),
+        ),
+      ),
+      
+      'retrive' => array(
+        'file' => array('type' => 'inc', 'module' => 'myservice', 'name' => 'myservice',),
+        'callback' => '_myservice_retrive_flower',
+        'help' => 'this will retrive flower from table',
+        'access callback' => 'services_access_menu',
+        'args' => array(
+          array(
+            'name' => 'fid',
+            'source' => array('path' => '1'),
+            'description' => 'The flower data to retrive',
+            'type' => 'varchar',
+            'optional' => FALSE,
+          ),
+        ),
+      ),
+      
+      
+      'retrive_id' => array(
+        'file' => array('type' => 'inc', 'module' => 'myservice', 'name' => 'myservice',),
+        'callback' => '_myservice_retrive_flower_id',
+        'help' => 'this will retrive flower from table',
+        'access callback' => 'give_accrss',
+        'args' => array(
+          array(
+            'name' => 'flower',
+            'source' => array('data' => 'flower'),
+            'description' => 'The flower data to retrive',
+            'type' => 'array',// varchar // int not working
+            'optional' => FALSE,
+          ),
+        ),
+      ),
+      
+      
+      
+    ),
+  );
+  return $testdata;
+}
+
+function give_accrss() {
+  return TRUE;
+}

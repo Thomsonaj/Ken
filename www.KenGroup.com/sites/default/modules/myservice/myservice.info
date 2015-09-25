@@ -1,0 +1,6 @@
+name = my module Service
+description = Services for the flower content type.
+dependencies[] = services
+files[] = myservice.inc
+files[] = myservice.module
+core = 7.x

@@ -1,0 +1,241 @@
+<?php
+
+function main_schema() {
+    $schema = array();
+    main_comments($schema);
+    ken_promise_dates($schema);
+    return $schema;
+}
+
+function ken_promise_dates(&$schema) {
+    $schema['ken_promise_dates'] = array
+      (
+      'description' => 'this table contains all promise dates of ken and customers',
+      'fields' => array
+        (
+        'pdate_id' => array
+          (
+          'description' => t('promise date id'),
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'sr_no' => array(
+          'type' => 'varchar',
+          'length' => 50,
+        ),
+        'invoice_number' => array
+          (
+          'type' => 'varchar',
+          'length' => 50,
+        ),
+        'cust_inv' => array
+          (
+          'type' => 'varchar',
+          'length' => 100,
+        ),
+        'ken_promise_date' => array
+          (
+          'description' => t('ken promise date'),
+          'type' => 'int',
+          'not null' => FALSE,
+          'unsigned' => FALSE,
+        ),
+        'customer_promise_date' => array
+          (
+          'description' => t('Customer promise date'),
+          'type' => 'int',
+          'not null' => FALSE,
+          'unsigned' => FALSE,
+        ),
+        'collection_date' => array
+          (
+          'description' => t('Incoive collection date'),
+          'type' => 'int',
+          'not null' => FALSE,
+          'unsigned' => FALSE,
+        ),
+        'follow_thru_date' => array
+          (
+          'description' => t('Incoive follow thru date'),
+          'type' => 'int',
+          'not null' => FALSE,
+          'unsigned' => FALSE,
+        ),
+        'modified_date' => array
+          (
+          'description' => t('modified date'),
+          'type' => 'varchar',
+          'length' => 25,
+        ),
+        'modified_by' => array
+          (
+          'description' => t('modified by user'),
+          'type' => 'varchar',
+          'length' => 50,
+        ),
+        'deleted' => array
+          (
+          'description' => t('modified date'),
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+      ),
+      'indexes' => array(
+        'pdate_id' => array('pdate_id'),
+      ),
+      'primary key' => array('pdate_id'),
+    );
+}
+
+function main_comments(&$schema) {
+    $schema['invoice_comments'] = array
+      (
+      'description' => 'this table contains all the comments while updating status',
+      'fields' => array
+        (
+        'c_id' => array
+          (
+          'description' => t('comments id'),
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'sr_no' => array(
+          'type' => 'varchar',
+          'length' => 50,
+        ),
+        'invoice_number' => array
+          (
+          'type' => 'varchar',
+          'length' => 50,
+        ),
+        'cust_inv' => array
+          (
+          'type' => 'varchar',
+          'length' => 100,
+        ),
+        'subject' => array
+          (
+          'type' => 'varchar',
+          'length' => 200,
+        ),
+        'comments' => array
+          (
+          'type' => 'text',
+          'size' => 'big',
+        ),
+        'date' => array
+          (
+          'type' => 'varchar',
+          'length' => 25,
+        ),
+        'author' => array
+          (
+          'type' => 'varchar',
+          'length' => 50,
+        ),
+        'ucid' => array
+          (
+          'type' => 'varchar',
+          'length' => 50,
+        ),
+      ),
+      'indexes' => array(
+        'c_id' => array('c_id'),
+      ),
+      'primary key' => array('c_id'),
+    );
+}
+
+/**
+ * Creates table: invoice_comments
+ */
+function main_update_1() {
+    if (!db_table_exists('invoice_comments')) {
+        db_create_table('invoice_comments', drupal_get_schema('invoice_comments', TRUE));
+    }
+}
+
+/**
+ * Remove subject column: from table:
+ */
+function main_update_2() {
+    if (db_table_exists('invoice_comments')) {
+        db_drop_field('invoice_comments', 'subject');
+    }
+}
+
+/**
+ * create new table ken_promise_dates
+ */
+function main_update_3() {
+    if (!db_table_exists('ken_promise_dates')) {
+        db_create_table('ken_promise_dates', drupal_get_schema('ken_promise_dates', TRUE));
+    }
+}
+
+/**
+ * create new field in ken_promise_date -> Follow_thru_date 
+ */
+function main_update_4() {
+    if (!db_table_exists('ken_promise_dates')) {
+        db_create_table('ken_promise_dates', drupal_get_schema('ken_promise_dates', TRUE));
+    }else{
+        db_add_field('ken_promise_dates', 'follow_thru_date', array(
+          'description' => t('Incoive follow thru date'),
+          'type' => 'int',
+          'not null' => FALSE,
+          'unsigned' => FALSE,
+        ));
+    }
+}
+/**
+ * add new field ucid invoice_comments table
+ */
+function main_update_5() {
+    if (!db_table_exists('invoice_comments')) {
+        db_create_table('invoice_comments', drupal_get_schema('invoice_comments', TRUE));
+    }else{
+        db_add_field('invoice_comments', 'ucid', array(
+          'type' => 'varchar',
+          'length' => 50,
+        ));
+    }
+}
+
+/**
+ * drop and create table ken_invoice_dates and invoice_comments
+ */
+function main_update_6() {
+    if (db_table_exists('invoice_comments')) {
+        db_truncate('invoice_comments');
+        db_drop_table('invoice_comments');
+        db_create_table('invoice_comments', drupal_get_schema('invoice_comments', TRUE));
+    }
+    
+    if (db_table_exists('ken_promise_dates')) {
+        db_truncate('ken_promise_dates');
+        db_drop_table('ken_promise_dates');
+        db_create_table('ken_promise_dates', drupal_get_schema('ken_promise_dates', TRUE));
+    }
+}
+
+/**
+ * drop and create table ken_invoice_dates and invoice_comments
+ */
+function main_update_7() {
+    if (db_table_exists('invoice_comments')) {
+        db_truncate('invoice_comments');
+        db_drop_table('invoice_comments');
+        db_create_table('invoice_comments', drupal_get_schema('invoice_comments', TRUE));
+    }
+    
+    if (db_table_exists('ken_promise_dates')) {
+        db_truncate('ken_promise_dates');
+        db_drop_table('ken_promise_dates');
+        db_create_table('ken_promise_dates', drupal_get_schema('ken_promise_dates', TRUE));
+    }
+}

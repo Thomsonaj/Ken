@@ -1,0 +1,1690 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function main_menu() {
+
+    /* $items['kengroup/view-invoice'] = array(//this creates a URL that will call this form at "flower/bouquet-addFlower"
+      'title' => 'View Invoice',
+      // 'description' => 'A form to view all the invoices in database.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('view_invoice_form'),
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+      ); */
+
+
+    $items['kengroup/view-invoice-details'] = array(//this creates a URL that will call this form at "flower/bouquet-addFlower"
+      'title' => 'View Invoice',
+      // 'description' => 'A form to view details of selected invoice.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('view_invoice_details_form', 2),
+      'access callback' => 'user_is_logged_in',
+      //'access callback' => 'user_access',
+      //'access arguments' => array('administer users'),    //for administer user only
+      // 'access arguments' => array(1), 
+      'type' => MENU_CALLBACK,
+    );
+
+    $items['kengroup/autocomplete'] = array(
+      'page callback' => 'main_autocomplete',
+      //'access arguments' => array('access example autocomplete'),
+      //'access arguments' => array('use autocomplete'),
+      'access arguments' => array('access content'), //all users..
+      'type' => MENU_CALLBACK
+    );
+    $items['kengroup/autocomplete_phone/%'] = array(
+      'page callback' => 'main_autocomplete_phone',
+      //'access arguments' => array('access example autocomplete'),
+      //'access arguments' => array('use autocomplete'),
+      'access arguments' => array('access content'), //all users..
+      'type' => MENU_CALLBACK
+    );
+
+    $items['kengroup/view-invoice-totals'] = array(//this creates a URL that will call this form at "flower/bouquet-addFlower"
+      'title' => 'View Invoice Totals',
+      'description' => 'A form to view total invoice amount and tax of all invoices.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('view_invoice_totals_form'),
+      'access callback' => 'user_is_logged_in',
+      'type' => MENU_CALLBACK,
+    );
+    $items['kengroup/calldetails'] = array(
+      'page callback' => 'callback_details',
+      'page arguments' => array(2),
+      //'access arguments' => array('access example autocomplete'),
+      //'access arguments' => array('use autocomplete'),
+      'access arguments' => array('access content'), //all users..
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK
+    );
+    return $items;
+}
+
+/**
+ * Implements hook_form()
+ */
+function view_invoice_totals_form($form, $form_state) {
+
+//    global $user;
+//    $userid = $user->uid;
+//
+//    if (isset($userid) && $userid != 1) {
+//        $access = db_query("SELECT field_access_value FROM field_data_field_access WHERE entity_id = $userid");
+//        $access_obj = $access->fetchObject();
+//        $access_val = isset($access_obj->field_access_value) && !empty($access_obj->field_access_value) ? $access_obj->field_access_value : 'none';
+//        if (isset($access_val) && $access_val != 'all') {
+//            $result = db_query("SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax "
+//                . "FROM c_form_pendency WHERE issue_c_form_to_entity_name = '$access_val' GROUP BY customer_name");
+//        }
+//        else {
+//            $result = db_query("SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax FROM c_form_pendency GROUP BY customer_name");
+//        }
+//    }
+//    else {
+//        $result = db_query("SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax FROM c_form_pendency GROUP BY customer_name");
+//    }
+//
+//
+//    $form['user'] = array(
+//      '#type' => 'textfield',
+//      '#title' => t('Customer Name'),
+//      '#autocomplete_path' => 'kengroup/autocomplete',
+//      '#size' => 25,
+//    );
+//    $form['client'] = array(
+//      '#type' => 'textfield',
+//      '#title' => t('Client Name'),
+//      '#size' => 25,
+//    );
+//
+//    $status[] = array();
+//    $i = 0;
+//    $status[$i] = '- Any -';
+//    foreach (arr_status() as $val) {
+//        $i++;
+//        $status[$i] = $val;
+//    }
+//    $form['status'] = array(
+//      '#type' => 'select',
+//      '#title' => t('Status'),
+//      '#options' => $status,
+//    );
+//    /* $form['collection_status'] = array(
+//      '#type' => 'select',
+//      '#title' => t('Collection Status'),
+//      '#options' => array(0 => '- Any -', 1 => 'Collected', 2 => 'Not Collected'),
+//      ); */
+//
+//
+//    $years = db_select('c_form_pendency', 'e')
+//        ->fields('e', array('finantial_year'))//SELECT the fields from node
+//        ->distinct()
+//        ->condition('finantial_year', NULL, 'IS NOT')
+//        ->orderBy('e.finantial_year', 'ASC')
+//        ->execute();
+//    $financial_year = array();
+//    $financial_year[0] = '- Any -';
+//    foreach ($years as $year) {
+//        foreach ($year as $yr) {
+//            $financial_year[$yr] = $yr;
+//        }
+//    }
+//    $form['financial_year'] = array(
+//      '#type' => 'select',
+//      '#title' => t('Financial Year'),
+//      '#options' => $financial_year,
+//    );
+//    $form['quarter'] = array(
+//      '#type' => 'select',
+//      '#title' => t('Quarter'),
+//      '#options' => array(0 => '- Any -', 'q1' => 'Quarter 1', 'q2' => 'Quarter 2', 'q3' => 'Quarter 3', 'q4' => 'Quarter 4'),
+//    );
+//
+//    $form['filter'] = array(
+//      '#type' => 'button',
+//      '#value' => t('Apply'),
+//      '#ajax' => array(
+//        'event' => 'click',
+//        'callback' => 'ajax_callback_search_invoice_tot',
+//        'wrapper' => 'search-div',
+//        'method' => 'replace',
+//        'progress' => array(
+//          'message' => ''),
+//      //'effect' => 'fade',
+//      ),
+//    );
+//
+//    $form['reset'] = array(
+//      '#type' => 'submit',
+//      '#value' => t('Reset'),
+//    );
+//
+//    $header = array('Customer Name', 'Total Invoice Amount', 'Total Differential Tax Liability');
+//    $entries = $result;
+//    $rows = array();
+//    foreach ($entries as $entry) {
+//        $invoice_amt = number_format($entry->inv_amt, 2, '.', ',');
+//        $total_tax = number_format($entry->tot_tax, 2, '.', ',');
+//        $rows[] = array($entry->cname, $invoice_amt, $total_tax);
+//    }
+//
+//    $per_page = 15;
+//    $current_page = pager_default_initialize(count($rows), $per_page);
+//    $chunks = array_chunk($rows, $per_page, TRUE);
+//    $output = theme('table', array('header' => $header, 'rows' => $chunks[$current_page]));
+//    $output .= theme('pager', array('quantity', count($rows)));
+//
+//    $form['table_total'] = array(
+//      '#type' => 'markup',
+//      '#markup' => $output,
+//      '#prefix' => '<div id="search-div">',
+//      '#suffix' => '</div>',);
+//    return $form;
+}
+
+function view_invoice_totals_form_submit($form, $form_state) {
+    // dpm('clear all');
+    // $form['filter']['user']['#value'] = '';
+    // $form['filter']['status']['#value'] = 0;
+    // $form['filter']['collection_status']['#value'] = 0;
+}
+
+function view_invoice_details_form($form, $form_state, $sr_no = 0) {
+    global $user;
+
+    // $form_state['storage']['invoice_number'] = $inv_no;
+    $sr_no = str_replace('$', '/', $sr_no);
+    $form['sr_no'] = array(
+      '#type' => 'hidden',
+      '#value' => $sr_no,
+    );
+
+    $result = db_select('c_form_pendency', 'c')
+        ->fields('c')
+        ->condition('sr_no', $sr_no)
+        ->execute();
+
+    $entries = $result;
+    $newrow = array();
+    $entry = $entries->fetchObject();
+
+    $ken_dates = db_select('ken_promise_dates', 'c')
+        ->fields('c')
+        ->condition('sr_no', $sr_no)
+        ->condition('deleted', 0)
+        ->execute();
+    $kdate = $ken_dates->fetchObject();
+
+    $newrow[] = array('Customer Code', $entry->sap_customer_code, 'Email', $entry->contact_email);
+    $newrow[] = array('Customer Name', $entry->customer_name, 'Phone No', $entry->customer_contact);
+    $newrow[] = array('Invoice Number', $entry->invoice_number, 'Address', $entry->customer_address);
+    $newrow[] = array('Invoice Date', date_convert($entry->invoice_date), 'Po Number', $entry->po_number);
+    $newrow[] = array('Total Invoice Amount(Rs.)', $entry->inv_amt, 'Bill State', $entry->bill_state);
+    $newrow[] = array('Total Differential  Tax Liability', $entry->total_differential_tax_liability, 'TIN Number', $entry->tin_number);
+    $newrow[] = array('Finantial Year', $entry->finantial_year, 'Lost Case / Wrong Issuance', $entry->lost_case_wrong_issuance);
+    $newrow[] = array('Quarter', $entry->quarter, 'Remarks', $entry->remarks);
+    $newrow[] = array('Issue C Form To Entity Name', $entry->issue_c_form_to_entity_name, 'Focus Account', $entry->focus_account);
+    $newrow[] = array('Form Type', $entry->form_type, 'Feedback', $entry->feedback);
+    $newrow[] = array('Goods Supplied From State', $entry->goods_supplied_from_state, 'Division Code', $entry->division_grouping);
+    $newrow[] = array('Status', arr_status($entry->status), 'Collectable', arr_collectable($entry->collectable));
+
+    //setting default values
+    $default_email = $entry->current_email;
+    $default_phone = $entry->current_phone;
+    $default_status = $entry->status;
+    $default_collectable = $entry->collectable;
+    $default_agent = $entry->agent;
+    // $default_ken_promise_date = !empty($kdate->ken_promise_date) && isset($kdate->ken_promise_date) ? format_date($kdate->ken_promise_date, 'custom', 'd-m-Y') : '';
+    // $default_customer_promise_date = !empty($kdate->customer_promise_date) && isset($kdate->customer_promise_date) ? format_date($kdate->customer_promise_date, 'custom', 'd-m-Y') : '';
+    //$default_collection_date = !empty($kdate->collection_date) && isset($kdate->collection_date) ? format_date($kdate->collection_date) : '';
+
+    $form['sap_customer_code'] = array(
+      '#type' => 'hidden',
+      '#value' => $entry->sap_customer_code,
+    );
+    $form['quarter'] = array(
+      '#type' => 'hidden',
+      '#value' => $entry->quarter,
+    );
+
+    $form['bill_state'] = array(
+      '#type' => 'hidden',
+      '#value' => $entry->bill_state,
+    );
+
+    $form['table'] = array(
+      '#theme' => 'table',
+      '#rows' => $newrow,
+      '#empty' => t('No content available.'),);
+
+    $form['blank1'] = array(
+      '#type' => 'markup',
+      '#markup' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+    );
+    if (in_array('admin', $user->roles) || in_array('agent', $user->roles) || in_array('administrator', $user->roles) || in_array('client', $user->roles)) {
+        $form['group_date'] = array(
+          '#type' => 'container',
+            //'#attributes' => array('class' => array('container-inline')),
+            //'#title_display' => 'invisible',
+            //'#border' => 'none'
+        );
+
+        $form['group_date']['ken_promise_date'] = array(
+          '#type' => 'date_popup',
+          '#title' => t('Ken Promise Date'),
+          '#date_format' => 'd-m-Y',
+          //'#maxlength' => 10,
+          '#date_label_position' => 'within',
+          // '#default_value' => date('Y-m-d H:i:s', (!empty($kdate->ken_promise_date) ? $kdate->ken_promise_date : '')),
+          '#title_display' => 'invisible',
+        );
+        if (!empty($kdate->ken_promise_date)) {
+            $form['group_date']['ken_promise_date']['#default_value'] = date('Y-m-d H:i:s', $kdate->ken_promise_date);
+        }
+
+        $form['group_date']['customer_promise_date'] = array(
+          '#title' => t('Customer Promise Date'),
+          '#type' => 'date_popup',
+          '#date_format' => 'd-m-Y',
+          // '#maxlength' => 10,
+          '#date_label_position' => 'within',
+          // '#default_value' => date('Y-m-d H:i:s', (!empty($kdate->customer_promise_date) ? $kdate->customer_promise_date : '')),
+          '#title_display' => 'invisible',
+        );
+        if (!empty($kdate->customer_promise_date)) {
+            $form['group_date']['customer_promise_date']['#default_value'] = date('Y-m-d H:i:s', $kdate->customer_promise_date);
+        }
+
+        $form['group_date']['collection_date'] = array(
+          '#title' => t('Collection Date'),
+          '#type' => 'date_popup',
+          '#date_format' => 'd-m-Y',
+          //'#maxlength' => 10,
+          '#date_label_position' => 'within',
+          //'#default_value' => $default_collection_date,
+          //'#default_value' => date('d-m-Y', $default_collection_date),
+          //'#default_value' => date('Y-m-d H:i:s', (!empty($kdate->collection_date) ? $kdate->collection_date : '')),
+          '#title_display' => 'invisible',
+        );
+        if (!empty($kdate->collection_date)) {
+            $form['group_date']['collection_date']['#default_value'] = date('Y-m-d H:i:s', $kdate->collection_date);
+        }
+        $form['group_date']['follow_thru_date'] = array(
+          '#title' => t('Follow Thru Date'),
+          '#type' => 'date_popup',
+          '#date_format' => 'd-m-Y',
+          //'#maxlength' => 10,
+          '#date_label_position' => 'within',
+          //'#default_value' => $default_collection_date,
+          //'#default_value' => date('d-m-Y', $default_collection_date),
+          //'#default_value' => date('Y-m-d H:i:s', (!empty($kdate->collection_date) ? $kdate->collection_date : '')),
+          '#title_display' => 'invisible',
+        );
+        if (!empty($kdate->follow_thru_date)) {
+            $form['group_date']['follow_thru_date']['#default_value'] = date('Y-m-d H:i:s', $kdate->follow_thru_date);
+        }
+        $form['current_email'] = array(
+          '#title' => t('Current Email'),
+          '#type' => 'textfield',
+          '#default_value' => $default_email,
+          '#size' => 44,
+        );
+
+        $form['current_phone'] = array(
+          '#title' => t('Current Phone'),
+          '#type' => 'textfield',
+          '#default_value' => $default_phone,
+          '#size' => 44,
+        );
+
+        // Dialer integrtion...
+//
+//        $form['dialer'] = array(
+//          '#type' => 'fieldset',
+//          '#title' => t('Dialer'),
+//          //'#collapsed' => TRUE,
+//          '#prefix' => '<div id="dialer-div">',
+//          '#suffix' => '</div>',
+//        );
+//        $form['dialer']['txt_agent'] = array(
+//          '#type' => 'select',
+//          '#title' => 'Select Agent',
+//          '#options' => get_online_agent_names(),
+////          '#size' => 44,
+//            //'#autocomplete_path' => 'kengroup/autocomplete_phone/' . str_replace('/', '$', $inv_no),
+//        );
+//
+//        $form['dialer']['txt_campaign'] = array(
+//          '#type' => 'select',
+//          '#title' => 'Select Campaign',
+//          '#options' => get_available_campaign_names(),
+//        );
+//        $form['dialer']['txt_dialer'] = array(
+//          '#type' => 'textfield',
+//          '#attributes' => array(
+//            'placeholder' => t('Enter a valid phone number'),),
+//          '#size' => 44,
+//          '#autocomplete_path' => 'kengroup/autocomplete_phone/' . str_replace('/', '$', $sr_no),
+//        );
+//        $form['dialer']['btn_dialer_call'] = array(
+//          '#type' => 'button',
+//          '#value' => t('Call'),
+//          '#ajax' => array(
+//            'event' => 'click',
+//            'callback' => 'ajax_makecall',
+//            'wrapper' => 'dialer-div',
+//            'method' => 'replace',
+//            'progress' => array(
+//              'message' => ''),
+//          ),
+//        );
+//
+//        $form['dialer']['blank'] = array(
+//          '#type' => 'markup',
+//          '#markup' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+//        );
+//        $form['dialer']['btn_dialer_disconnect'] = array(
+//          '#type' => 'button',
+//          '#value' => t('Disconnect'),
+//          '#attributes' => array('disabled' => TRUE),
+//          '#ajax' => array(
+//            'event' => 'click',
+//            'callback' => 'ajax_cancelcall',
+//            'wrapper' => 'dialer-div',
+//            'method' => 'replace',
+//            'progress' => array(
+//              'message' => ''),
+//          ),
+//        );
+//
+//
+//        /*  $form['call_log'] = array(
+//          '#type' => 'fieldset',
+//          //  '#title' => t('Call History'),
+//          '#prefix' => '<div id="call_log-div">',
+//          '#suffix' => '</div>',
+//          ); */
+//
+////        $form['call_log']['from_date'] = array(
+////          '#type' => 'date_popup',
+////          '#title' => t('From Date'),
+////          '#date_format' => 'd-m-Y h:i a',
+////         // '#date_timezone' => date_default_timezone(),
+////          //'#maxlength' => 10,
+////          '#date_label_position' => 'within',
+////          // '#default_value' => date('Y-m-d H:i:s', (!empty($kdate->ken_promise_date) ? $kdate->ken_promise_date : '')),
+////         // '#title_display' => 'invisible',
+////        );
+////        
+//        /*   $form['call_log']['from_date'] = array(
+//          '#type' => 'date_popup',
+//          '#title' => t('From Date'),
+//          '#date_format' => 'Y-m-d H:i:s',
+//          // '#date_timezone' => date_default_timezone(),
+//          //'#maxlength' => 10,
+//          '#date_label_position' => 'within',
+//          '#default_value' => date('Y-m-d H:i:s', time()),
+//          // '#title_display' => 'invisible',
+//          );
+//
+//          $form['call_log']['to_date'] = array(
+//          '#type' => 'date_popup',
+//          '#title' => t('To Date'),
+//          '#date_format' => 'Y-m-d H:i:s',
+//          // '#date_timezone' => date_default_timezone(),
+//          //'#maxlength' => 10,
+//          '#date_label_position' => 'within',
+//          '#default_value' => date('Y-m-d H:i:s', time()),
+//          // '#title_display' => 'invisible',
+//          ); */
+//        $form['dialer']['blank1'] = array(
+//          '#type' => 'markup',
+//          '#markup' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+//        );
+//        $form['dialer']['btn_view_call_log'] = array(
+//          '#type' => 'button',
+//          '#value' => t('View Latest Call Logs'),
+//          // '#attributes' => array('disabled' => TRUE),
+//          '#ajax' => array(
+//            'event' => 'click',
+//            'callback' => 'ajax_view_call_log',
+//            'wrapper' => 'dialer-div',
+//            'method' => 'replace',
+//          //'progress' => array(
+//          // 'message' => ''),
+//          ),
+//        );
+//        $form['dialer']['blank2'] = array(
+//          '#type' => 'markup',
+//          '#markup' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+//        );
+//        $form['dialer']['status_dialer'] = array(
+//          '#type' => 'markup',
+//          '#markup' => t('Status: No call in progress'),
+//        );
+//        $form['dialer']['table_call_log'] = array(
+//          '#theme' => 'table',);
+//
+//        $form['dialer']['voice_file'] = array(
+//          '#type' => 'textfield',
+//          '#title' => t('Add UCID'),
+//        );
+//
+//        $form['dialer']['btn_dwnload_voicefile'] = array(
+//          '#type' => 'button',
+//          '#value' => t('Download All Voice files'),
+//          // '#attributes' => array('disabled' => TRUE),
+//          '#ajax' => array(
+//            'event' => 'click',
+//            'callback' => 'ajax_download_all_voicefile',
+//          // 'wrapper' => 'dialer-div',
+//          // 'method' => 'replace',
+//          //'progress' => array(
+//          // 'message' => ''),
+//          ),
+//        );
+//        $form['dialer']['blank3'] = array(
+//          '#type' => 'markup',
+//          '#markup' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+//        );
+//        $form['dialer']['btn_dwnload_latest_voicefile'] = array(
+//          '#type' => 'button',
+//          '#value' => t('Download Latest Voice files'),
+//          // '#attributes' => array('disabled' => TRUE),
+//          '#ajax' => array(
+//            'event' => 'click',
+//            'callback' => 'ajax_download_latest_voicefile',
+//          // 'wrapper' => 'dialer-div',
+//          // 'method' => 'replace',
+//          //'progress' => array(
+//          // 'message' => ''),
+//          ),
+//        );
+
+
+        $form['status'] = array(
+          "#type" => "select",
+          "#title" => t("Select Status"),
+          "#options" => arr_status(),
+          "#default_value" => $default_status,
+          '#ajax' => array(
+            // 'event' => 'click',
+            'callback' => 'ajax_set_collectable',
+            'wrapper' => 'wrapper-collectable',
+            'method' => 'replace',
+            'progress' => array(
+              'message' => ''),
+          ),
+        );
+
+        $form['collectable'] = array(
+          "#type" => "select",
+          "#title" => t("Select Collectable"),
+          "#options" => arr_collectable(),
+          "#default_value" => $default_collectable,
+          '#prefix' => '<div id="wrapper-collectable">',
+          '#suffix' => '</div>'
+        );
+
+//        $form['agents'] = array(
+//          "#type" => "select",
+//          "#title" => t("Select Agent"),
+//          "#options" => arr_agents(),
+//          "#default_value" => $default_agent,
+//          '#prefix' => '<div id="wrapper-collectable">',
+//          '#suffix' => '</div>'
+//        );
+        /* $form['user'] = array(
+          '#type' => 'markup',
+          '#markup' => 'Author: ' . $user->name . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+          . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+          );
+          $form['date'] = array(
+          '#type' => 'markup',
+          '#markup' => ' Date:' . format_date(time(), 'custom', 'd/m/Y'),
+          );
+         */
+        $form['comments'] = array(
+          '#type' => 'textarea',
+          '#title' => t('Add your comments'),
+          '#cols' => 105,
+          //'#rows' => 3,
+          '#resizable' => FALSE,
+          '#maxlength' => 5000,
+          '#description' => t('Add Comments'),
+        );
+
+
+        $form['all_comments'] = array(
+          '#type' => 'markup',
+          '#markup' => ' ',
+          '#prefix' => '<div id="checkboxes-div">',
+          '#suffix' => '</div>',);
+
+        $form['save'] = array(
+          '#type' => 'submit',
+          '#value' => 'Save'
+        );
+        $form['blank'] = array(
+          '#type' => 'markup',
+          '#markup' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+        );
+        /**
+         * to get the number of comments in the table
+         */
+        $no_of_comments = 0;
+        $inv_result = db_select('c_form_pendency', 'i')
+            ->fields('i', array('sr_no'))
+            ->condition('sap_customer_code', $entry->sap_customer_code)
+            ->condition('quarter', $entry->quarter)
+            ->execute();
+        foreach ($inv_result as $inv_entry) {
+            $no_of_comments = $no_of_comments + db_select('invoice_comments', 'c')
+                    ->fields('c')
+                    ->condition('sr_no', $inv_entry->sr_no)
+                    ->execute()
+                    ->rowCount();
+        }
+
+
+        $form['view_comments'] = array(
+          '#type' => 'button',
+          '#value' => 'View all comments(' . $no_of_comments . ')',
+          '#ajax' => array(
+            'event' => 'click',
+            'callback' => 'ajax_callback',
+            'wrapper' => 'checkboxes-div',
+            'method' => 'replace',
+          ),
+        );
+    }
+    return $form;
+}
+
+function view_invoice_details_form_submit($form, &$form_state) {
+    global $user;
+    $sr_no = $form_state['values']['sr_no'];
+    $current_email = $form_state['values']['current_email'];
+    $current_phone = $form_state['values']['current_phone'];
+    $status = $form_state['values']['status'];
+    $collectable = $form_state['values']['collectable'];
+    $ken_promise_date = isset($form_state['values']['ken_promise_date']) ? strtotime($form_state['values']['ken_promise_date']) : 0;
+    $customer_promise_date = isset($form_state['values']['customer_promise_date']) ? strtotime($form_state['values']['customer_promise_date']) : 0;
+    $collection_date = isset($form_state['values']['collection_date']) ? strtotime($form_state['values']['collection_date']) : 0;
+    $follow_thru_date = isset($form_state['values']['follow_thru_date']) ? strtotime($form_state['values']['follow_thru_date']) : 0;
+    //$sr_no = $form_state['storage']['invoice_number']; 
+    $ucid = isset($form_state['values']['voice_file']) ? $form_state['values']['voice_file'] : '';
+    $comments = $form_state['values']['comments'];
+
+    if (!empty($sr_no)) {
+        try {
+            db_update('c_form_pendency')
+                ->fields(array(
+                  'status' => $status,
+                  'collectable' => $collectable,
+                  'current_email' => $current_email,
+                  'current_phone' => $current_phone,
+                ))
+                ->condition('sr_no', $sr_no)
+                ->execute();
+            if (!empty($comments)) {
+                db_insert('invoice_comments')
+                    ->fields(array(
+                      'sr_no' => $sr_no, 'comments' => $comments, 'date' => format_date(time(), 'custom', 'd/m/Y, h:i:s a'), 'author' => t($user->name), 'ucid' => $ucid,
+                    ))
+                    ->execute();
+            }
+        }
+        catch (Exception $ex) {
+            dsm($ex);
+        }
+        $exists = db_query("SELECT sr_no FROM {ken_promise_dates} WHERE sr_no = '$sr_no' AND deleted =0");
+        if ($exists->rowCount() > 0) {
+            db_update('ken_promise_dates')
+                ->fields(array('deleted' => 1))
+                ->condition('sr_no', $sr_no)
+                ->condition('deleted', 0)
+                ->execute();
+        }
+        db_insert('ken_promise_dates')
+            ->fields(array(
+              'sr_no' => $sr_no, 'ken_promise_date' => $ken_promise_date, 'customer_promise_date' => $customer_promise_date, 'collection_date' => $collection_date,
+              'follow_thru_date' => $follow_thru_date, 'modified_date' => format_date(time(), 'custom', 'd/m/Y, h:i:s a'), 'modified_by' => t($user->name),
+            ))
+            ->execute();
+
+        /**
+         * Assigning Promise dates (Both Ken & Customer) / Comments / Dispositions(status) 
+         * to the entire invoices of the perticular customer where Quarter and Bill state are the same.
+         */
+        $inv_result = db_select('c_form_pendency', 'i')
+            ->fields('i', array('sr_no'))
+            ->condition('sap_customer_code', $form_state['values']['sap_customer_code'])
+            ->condition('quarter', $form_state['values']['quarter'])
+            ->condition('bill_state', $form_state['values']['bill_state'])
+            ->execute();
+
+        foreach ($inv_result as $inv_entry) {
+            $exists = db_query("SELECT sr_no FROM {ken_promise_dates} WHERE sr_no = '$inv_entry->sr_no' AND deleted =0");
+            if ($exists->rowCount() > 0) {
+                db_update('ken_promise_dates')
+                    ->fields(array(
+                      'ken_promise_date' => $ken_promise_date,
+                      'customer_promise_date' => $customer_promise_date,
+                      'collection_date' => $collection_date,
+                      'follow_thru_date' => $follow_thru_date,
+                    ))
+                    ->condition('sr_no', $inv_entry->sr_no)
+                    ->condition('sr_no', $sr_no, '<>')
+                    ->condition('deleted', 0)
+                    ->execute();
+            }
+            else {
+                db_insert('ken_promise_dates')
+                    ->fields(array(
+                      'sr_no' => $inv_entry->sr_no, 'ken_promise_date' => $ken_promise_date, 'customer_promise_date' => $customer_promise_date, 'follow_thru_date' => $follow_thru_date,
+                      'modified_date' => format_date(time(), 'custom', 'd/m/Y, h:i:s a'), 'modified_by' => t($user->name),
+                    ))
+                    ->execute();
+            }
+            db_update('c_form_pendency')
+                ->fields(array(
+                  'status' => $status,
+                  'collectable' => $collectable,
+                  'current_email' => $current_email,
+                  'current_phone' => $current_phone,
+                ))
+                ->condition('sr_no', $inv_entry->sr_no)
+                ->condition('sr_no', $sr_no, '<>')
+                ->execute();
+        }
+    }
+}
+
+function view_invoice_form($form, $form_state) {
+    /*
+      $form['search_main'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Search By',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      //'#attributes' => array('class' => array('container-inline'))
+      );
+
+      $form['search_main']['txt_search'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Customer Name:',
+      //'#default_value'=>'Search',
+      '#autocomplete_path' => 'kengroup/autocomplete',
+      );
+      $form['search_main']['txt_search_inv'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Invoice Number',
+      //'#default_value'=>'Search',
+      //'#autocomplete_path' => 'kengroup/autocomplete',
+      );
+      $form['search_main']['txt_search_status'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Status:',
+      //'#default_value'=>'Search',
+      //'#autocomplete_path' => 'kengroup/autocomplete',
+      );
+
+      $form['search_main']['btn_search'] = array(
+      '#type' => 'button',
+      '#value' => 'search',
+      //'#src' => drupal_get_path('module', 'main') . '/search.png',
+      '#ajax' => array(
+      'event' => 'click',
+      'callback' => 'ajax_callback_search_invoice',
+      'wrapper' => 'searchbox-div',
+      'method' => 'replace',
+      ),
+      );
+      $header = array('Sr No', 'Sap Customer Code', 'Goods Supplied From State', 'Invoice Number', 'Customer Name', 'Quarter', 'Financial Year', 'Invoice Date', 'Month', 'Invoice Amount', 'Currency', 'Po Number',
+      'Tin Number', 'Issue C Form To Entity Name', 'Total Differential Tax Liability', 'Division', 'Status');
+
+      $result = db_select('c_form_pendency', 'c')
+      ->fields('c')
+      ->execute();
+
+      $entries = $result;
+      $rows = array();
+      foreach ($entries as $entry) {
+      $rows[] = array($entry->sr_no, $entry->sap_customer_code, $entry->goods_supplied_from_state, l($entry->invoice_number, 'kengroup/view-invoice-details/' . $entry->invoice_number), $entry->customer_name
+      , $entry->quarter, $entry->finantial_year, $entry->invoice_date, $entry->month, $entry->inv_amt, $entry->currency, $entry->po_number,
+      $entry->tin_number, $entry->issue_c_form_to_entity_name, $entry->total_differential_tax_liability, $entry->division, arr_status($entry->status));
+      }
+
+      $per_page = 10;
+      // Initialize the pager
+      $current_page = pager_default_initialize(count($rows), $per_page);
+      // Split your list into page sized chunks
+      $chunks = array_chunk($rows, $per_page, TRUE);
+      // Show the appropriate items from the list
+      $output = theme('table', array('header' => $header, 'rows' => $chunks[$current_page]));
+      // $output = theme('table', array('header' => $header, 'rows' => $rows));
+      $output .= theme('pager', array('quantity', count($rows)));
+
+      $form['mkup'] = array(
+      '#type' => 'markup',
+      '#markup' => $output,
+      '#prefix' => '<div id="searchbox-div">',
+      '#suffix' => '</div>',);
+     */
+    return $form;
+}
+
+/* -----------------------------other functions-------------------------------------------------- */
+
+/**
+ * Ajax call back functions
+ */
+function ajax_set_collectable($form, $form_state) {
+    $status = $form_state['values']['status'];
+    $arr_collectable = array(2, 4, 5, 13, 18, 21);
+    if (in_array($status, $arr_collectable)) {
+        $form['collectable']['#value'] = 3;
+    }
+    else {
+        $form['collectable']['#value'] = 2;
+    }
+    return $form['collectable'];
+}
+
+function ajax_makecall($form, $form_state) {
+    $number = $form_state['values']['txt_dialer'];
+    $headers = array(
+      "Accept: application/json",
+      "Content-type: application/json"
+    );
+
+
+    if (!empty($number) && is_numeric($number)) {
+        $form['dialer']['status_dialer']['#markup'] = 'Status: dialing ' . $number . ' ...';
+        $form['dialer']['btn_dialer_disconnect']['#attributes'] = array('enabled' => TRUE);
+        $form['dialer']['btn_dialer_call']['#attributes'] = array('disabled' => TRUE);
+        $arr_camp = get_available_campaign_names();
+        $campaign = $arr_camp[$form_state['values']['txt_campaign']];
+        $arr_agent = get_online_agent_names();
+        $agent_id = $arr_agent[$form_state['values']['txt_agent']];
+
+        $result1 = drupal_http_request("http://cloudagent.in/CAServices/AgentManualDial.php?api_key=KK7efb6760e6b8eb23dadb71883f4be743&username=Ken_Group"
+            . "&agentID=$agent_id&campaignName=$campaign&customerNumber=$number");
+        // dpm($result1);
+        //for agent login
+        /*  $data = 'action=formLogin&customer=Ken_Group&agentID=test1&phoneNumber=123456789&pin=100&orientation=vertical&loginURL=http://ca.ozonetel.com/OCCDV2/occdManager.do?action=formLogin&redirectURL=http://ca.ozonetel.com/OCCDV2/cloudagent/agent_cti_toolbar.jsp" width="100%" height="100';
+          $options = array(
+          'method' => 'GET',
+          'data' => $data,
+          //'timeout' => 15,
+          'headers' => $headers,
+          ); */
+
+        // $result = drupal_http_request('http://ca.ozonetel.com/OCCDV2/occdManager.do?', $options);
+        //$result = drupal_http_request('http://ca.ozonetel.com/OCCDV2/occdManager.do?action=formLogin&customer=Ken_Group&agentid=test1&phoneNumber=8884695065&pin=100&orientation=vertical&loginURL=http://ca.ozonetel.com/OCCDV2/occdManager.do?action=formLogin&redirectURL=http://ca.ozonetel.com/OCCDV2/cloudagent/agent_cti_toolbar.jsp" width="100%" height="100');
+        //  dpm($result);
+        //for manual dial(online)
+        /*  $data1 = "api_key=KK7efb6760e6b8eb23dadb71883f4be743&username=Ken_Group&agentID=test1&campaignName=Inbound_918030196430&customerNumber=$number";
+          $options = array(
+          'method' => 'GET',
+          'data' => $data1,
+          //'timeout' => 15,
+          // 'headers' => $headers,
+          ); */
+        // $result1 = drupal_http_request('http://cloudagent.in/CAServices/AgentManualDial.php?', $options);
+        // $result1 = drupal_http_request("http://cloudagent.in/CAServices/AgentManualDial.php?api_key=KK7efb6760e6b8eb23dadb71883f4be743&username=Ken_Group&agentID=test1&campaignName=Inbound_918030196430&customerNumber=$number");
+        // dpm($result1);
+        //http://ca.ozonetel.com/OCCDV2/occdManager.do?action=formLogin&customer=Ken_Group&agentid=test1&phoneNumber=8884695065&pin=100&orientation=vertical&loginURL=http://cloudagent.in/login.html&redirectURL=http://ca.ozonetel.com/OCCDV2/cloudagent/agent_cti_toolbar.jsp" width="100%" height="100
+    }
+    else {
+
+
+//        $form['dialer']['txt_dialer']['#value'] = '';
+//        //form_set_error('Invalid number', t('You must enter a valid phone number'));
+//        //for manual dial(online)
+//
+//        $result1 = drupal_http_request("http://cloudagent.in/CAServices/AgentManualDial.php?api_key=KK7efb6760e6b8eb23dadb71883f4be743&username=Ken_Group&agentID=test1&campaignName=Inbound_918030196430&customerNumber=8884695065");
+//        dpm($result1);
+//        dpm(($result1->data));
+    }
+
+    return $form['dialer'];
+}
+
+function ajax_cancelcall($form, $form_state) {
+    $form['dialer']['status_dialer']['#markup'] = 'Status: No call in progress';
+    $form['dialer']['txt_dialer']['#value'] = '';
+
+    return $form['dialer'];
+}
+
+function ajax_callback($form, $form_state) {
+    $audio = '-';
+    $arr_camp = get_available_campaign_names();
+    $campaign = $arr_camp[$form_state['values']['txt_campaign']];
+    $header = array('Author', 'Date', 'Comment', 'Voice File');
+    /*  $header = array(
+      array('data' => t('Invoice Number'),'field' => 'invoice_number', ),
+      array('data' => t('Author'),'field' => 'author',),
+      array('data' => t('Date'),'field' => 'date', 'sort' => 'asc'), // sort
+      array('data' => t('Comment'),'field' => 'comments',),
+      array('data' => t('Voice File')),
+      ); */
+    $inv_result = db_select('c_form_pendency', 'i')
+        ->fields('i', array('sr_no'))
+        ->condition('sap_customer_code', $form_state['values']['sap_customer_code'])
+        ->condition('quarter', $form_state['values']['quarter'])
+        ->condition('bill_state', $form_state['values']['bill_state'])
+        ->execute();
+
+    $rows = array();
+    foreach ($inv_result as $inv_entry) {
+        $result = db_select('invoice_comments')
+            ->fields('invoice_comments', array('sr_no', 'comments', 'date', 'author', 'ucid'))
+            ->condition('sr_no', $inv_entry->sr_no)
+            //  ->extend('TableSort')
+            //  ->orderByHeader($header)
+            ->execute();
+        $entries = $result;
+
+        foreach ($entries as $entry) {
+            if (trim($entry->ucid) . strlen() > 0) {
+                $file_result = 'sites/default/files/audio/Ken_Group_' . $entry->ucid . '.mp3';
+                $file_result = file_exists($file_result) ? $file_result : 'sites/default/files/audio/' . $entry->ucid . '.mp3';
+                if (file_exists($file_result)) {
+                    $audio = "<audio width= '50' height ='50' controls><source src='" . file_create_url($file_result) . "'" . "type='audio/mpeg' autoplay='autoplay'>"
+                        . "<source src='" . file_create_url($file_result) . "'" . "type='audio/mp4' autoplay='autoplay'> </audio>" . "<source src='" . file_create_url($file_result) . "'" . "type='audio/mp3' autoplay='autoplay'></audio>";
+                }
+            }
+            $rows[] = array(
+              // 'invoice_number' => isset($inv_no) ? '$inv_no' : '-',
+              'author' => $entry->author,
+              'date' => $entry->date,
+              'comment' => $entry->comments,
+              // 'voice_file' => empty($entry->ucid)?'-':l('play',!empty(get_voicemail($campaign, $entry->ucid))?get_voicemail($campaign, $entry->ucid):"http://recordings.kookoo.in/Ken_Group/Ken_Group_$entry->ucid.mp3"));
+              // 'voice_file' => empty($entry->ucid) ? '-' : l('play', "http://recordings.kookoo.in/Ken_Group/Ken_Group_$entry->ucid.mp3"),
+              'voice_file' => $audio,
+            );
+            $file_result = '';
+            $audio = '-';
+        }
+    }
+
+    $sorted_rows = array_orderby($rows, 'date', SORT_ASC);   // sorting the array according to comment posted date in ascending order
+
+    $output = theme('table', array('header' => $header, 'rows' => $sorted_rows));
+
+    $form['all_comments']['#markup'] = $output;
+
+    return $form['all_comments'];
+}
+
+/*
+  function ajax_callback_search_invoice($form, $form_state) {
+  $cust_name = $form_state['values']['txt_search'];
+
+  $header = array('Sr No', 'Sap Customer Code', 'Goods Supplied From State', 'Invoice Number', 'Customer Name', 'Quarter', 'Financial Year',
+  'Invoice Date', 'Month', 'Invoice Amount', 'Currency', 'Po Number', 'Tin Number', 'Issue C Form To Entity Name', 'Total Differential Tax Liability', 'Division', 'Status');
+  if (!empty($cust_name)) {
+
+  $result = db_select('c_form_pendency', 'c')
+  ->fields('c')
+  ->condition('customer_name', $cust_name)
+  ->execute();
+  }
+  else {
+  $result = db_select('c_form_pendency', 'c')
+  ->fields('c')
+  ->execute();
+  }
+
+  $entries = $result;
+  $rows = array();
+  foreach ($entries as $entry) {
+  $rows[] = array($entry->sr_no, $entry->sap_customer_code, $entry->goods_supplied_from_state, l($entry->invoice_number, 'kengroup/view-invoice-details/' . $entry->invoice_number), $entry->customer_name,
+  $entry->quarter, $entry->finantial_year, $entry->invoice_date, $entry->month, $entry->inv_amt, $entry->currency, $entry->po_number,
+  $entry->tin_number, $entry->issue_c_form_to_entity_name, $entry->total_differential_tax_liability, $entry->division, arr_status($entry->status));
+  }
+  $per_page = 10;
+  // Initialize the pager
+  $current_page = pager_default_initialize(count($rows), $per_page);
+  // Split your list into page sized chunks
+  $chunks = array_chunk($rows, $per_page, TRUE);
+  // Show the appropriate items from the list
+  $output = theme('table', array('header' => $header, 'rows' => $chunks[$current_page]));
+  $output .= theme('pager', array('quantity', count($rows)));
+  $form['mkup']['#markup'] = $output;
+  return $form['mkup'];
+  }
+ */
+/*
+  function get_querry($cust_name, $status, $c_status, $financial_year, $quarter) {
+  global $user;
+  $userid = $user->uid;
+  if (isset($userid) && $userid != 1) {
+  $access = db_query("SELECT field_access_value FROM field_data_field_access WHERE entity_id = $userid");
+  $access_obj = $access->fetchObject();
+  $access_val = isset($access_obj->field_access_value) && !empty($access_obj->field_access_value) ? $access_obj->field_access_value : 'none';
+  if (isset($access_val) && $access_val != 'all') {
+  $querry = "SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax
+  FROM c_form_pendency WHERE issue_c_form_to_entity_name = '$access_val' AND";
+  }
+  else {
+  $querry = "SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax
+  FROM c_form_pendency WHERE";
+  }
+  }
+  else {
+  $querry = "SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax
+  FROM c_form_pendency WHERE";
+  }
+  if (!empty($cust_name)) {
+  $querry = $querry . " customer_name LIKE '$cust_name'";
+  if (!empty($status)) {
+  $querry = $querry . " AND status = $status";
+  }
+  if (!empty($c_status)) {
+  if ($c_status == 1) {
+  $querry = $querry . " AND status = 14";
+  }
+  elseif ($c_status == 2) {
+  $querry = $querry . " AND status != 14";
+  }
+  }
+  if (!empty($financial_year)) {
+  $querry = $querry . " AND finantial_year = '$financial_year'";
+  }
+  if (!empty($quarter)) {
+  $querry = $querry . " AND quarter LIKE '$quarter%'";
+  }
+  }
+  elseif (!empty($status)) {
+  $querry = $querry . " status = $status";
+  if (!empty($c_status)) {
+  if ($c_status == 1) {
+  $querry = $querry . " AND status = 14";
+  }
+  elseif ($c_status == 2) {
+  $querry = $querry . " AND status != 14";
+  }
+  }
+  if (!empty($financial_year)) {
+  $querry = $querry . " AND finantial_year = '$financial_year'";
+  }
+  if (!empty($quarter)) {
+  $querry = $querry . " AND quarter LIKE '$quarter%'";
+  }
+  }
+  elseif (!empty($c_status)) {
+
+  if ($c_status == 1) {
+  $querry = $querry . " status = 14";
+  }
+  elseif ($c_status == 2) {
+  $querry = $querry . " status != 14";
+  }
+  if (!empty($financial_year)) {
+  $querry = $querry . " AND finantial_year = '$financial_year'";
+  }
+  if (!empty($quarter)) {
+  $querry = $querry . " AND quarter LIKE '$quarter%'";
+  }
+  }
+  elseif (!empty($financial_year)) {
+  $querry = $querry . " finantial_year = '$financial_year'";
+  if (!empty($quarter)) {
+  $querry = $querry . " AND quarter LIKE '$quarter%'";
+  }
+  }
+  elseif (!empty($quarter)) {
+  $querry = $querry . " quarter LIKE '$quarter%'";
+  }
+  else {
+  if (!strpos($querry, 'WHERE issue_c_form_to_entity_name')) {
+  $querry = str_replace('WHERE', '', $querry);
+  }
+  else {
+  $querry = str_replace('AND', '', $querry);
+  }
+  }
+  $querry = $querry . " GROUP BY customer_name";
+  //dpm($querry);
+  return $querry;
+  } */
+/*
+  function get_querry($cust_name, $status, $c_status, $financial_year, $quarter, $client) {
+  global $user;
+  $userid = $user->uid;
+  if (isset($userid) && $userid != 1) {
+  $access = db_query("SELECT field_access_value FROM field_data_field_access WHERE entity_id = $userid");
+  $access_obj = $access->fetchObject();
+  $access_val = isset($access_obj->field_access_value) && !empty($access_obj->field_access_value) ? $access_obj->field_access_value : 'none';
+  if (isset($access_val) && $access_val != 'all') {
+  $querry = "SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax
+  FROM c_form_pendency WHERE issue_c_form_to_entity_name = '$access_val' AND";
+  }
+  else {
+  $querry = "SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax
+  FROM c_form_pendency WHERE";
+  }
+  }
+  else {
+  $querry = "SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax
+  FROM c_form_pendency WHERE";
+  }
+  $and = '';
+  if (!empty($cust_name)) {
+  $querry = $querry . " customer_name LIKE '%$cust_name%'";
+  $and = ' AND';
+  }
+  if (!empty($status)) {
+  $querry = $querry . $and . " status = $status";
+  $and = ' AND';
+  }
+  if (!empty($c_status)) {
+  if ($c_status == 1) {
+  $querry = $querry . $and . " status = 14";
+  }
+  elseif ($c_status == 2) {
+  $querry = $querry . $and . " status != 14";
+  }
+  $and = ' AND';
+  }
+  if (!empty($financial_year)) {
+  $querry = $querry . $and . " finantial_year = '$financial_year'";
+  $and = ' AND';
+  }
+  if (!empty($quarter)) {
+  $querry = $querry . $and . " quarter LIKE '$quarter%'";
+  $and = ' AND';
+  }
+  if (!empty($client)) {
+  $querry = $querry . $and . " issue_c_form_to_entity_name = '$client'";
+  $and = ' AND';
+  }
+  if (empty($and)) {
+  if (!strpos($querry, 'WHERE issue_c_form_to_entity_name')) {
+  $querry = str_replace('WHERE', '', $querry);
+  }
+  else {
+  $querry = str_replace('AND', '', $querry);
+  }
+  }
+  $querry = $querry . " GROUP BY customer_name";
+  // dpm($querry);
+  return $querry;
+  }
+ */
+/*
+  function ajax_callback_search_invoice_tot($form, $form_state) {
+  $cust_name = $form_state['values']['user'];
+  $client = $form_state['values']['client'];
+  $status = $form_state['values']['status'];
+  $c_status = $form_state['values']['collection_status'];
+  $financial_year = $form_state['values']['financial_year'];
+  $quarter = $form_state['values']['quarter'];
+
+  //         $result = db_query("SELECT customer_name cname, sum(inv_amt) inv_amt, sum(total_differential_tax_liability) tot_tax FROM c_form_pendency GROUP BY customer_name");
+  //get_querry1($cust_name, $status, $c_status, $financial_year, $quarter);
+  $result = db_query(get_querry($cust_name, $status, $c_status, $financial_year, $quarter, $client));
+  $header = array('Customer Name', 'Total Invoice Amount', 'Total Differential Tax Liability');
+  $entries = $result;
+  $rows = array();
+  foreach ($entries as $entry) {
+  $invoice_amt = number_format($entry->inv_amt, 2, '.', ',');
+  $total_tax = number_format($entry->tot_tax, 2, '.', ',');
+  $rows[] = array($entry->cname, $invoice_amt, $total_tax);
+  }
+  $per_page = 15;
+  $current_page = pager_default_initialize(count($rows), $per_page);
+  $chunks = array_chunk($rows, $per_page, TRUE);
+  $output = theme('table', array('header' => $header, 'rows' => $chunks[$current_page]));
+  $output .= theme('pager', array('quantity', count($rows)));
+
+  $form['table_total']['#markup'] = $output;
+  return $form['table_total'];
+  }
+ */
+
+/**
+ * auto complete functions for search textfield 
+ */
+function main_autocomplete_phone($string) {
+    $sr_no = str_replace('$', '/', arg(2));
+    $final_result = array();
+    $matches = array();
+    $result = db_select('c_form_pendency')
+        ->fields('c_form_pendency', array('customer_contact', 'current_phone'))
+        ->condition('c_form_pendency.sr_no', $sr_no)
+        ->execute();
+    $result_obj = $result->fetchObject();
+
+    $contacts = explode(",", $result_obj->customer_contact);
+    foreach ($contacts as $contact) {
+        $final_result[] = trim($contact, " ");
+    }
+    /*  $mobiles = explode(",", $result_obj->customer_mobile);
+      foreach ($mobiles as $mobile) {
+      $final_result[] = trim($mobile, " ");
+      } */
+
+    $phones = explode(",", $result_obj->current_phone);
+    foreach ($phones as $phone) {
+        $final_result[] = trim($phone, " ");
+    }
+    //  dpm($final_result);
+    // $final_result = array('2121212', '1343434344', '545454534', '145353434345');
+    // save the query to matches
+    foreach ($final_result as $number) {
+        if (strpos($number, $string) !== false) {
+            $matches[$number] = $number;
+        }
+    }
+
+    // Return the result to the form in json
+    drupal_json_output($matches);
+}
+
+function main_autocomplete($string) {
+    $matches = array();
+    $result = db_select('c_form_pendency')
+        ->fields('c_form_pendency', array('customer_name'))
+        ->condition('c_form_pendency.customer_name', '%' . db_like($string) . '%', 'LIKE')
+        ->range(0, 50)
+        ->execute();
+
+    // save the query to matches
+    foreach ($result as $row) {
+        $matches[$row->customer_name] = check_plain($row->customer_name);
+    }
+
+    // Return the result to the form in json
+    drupal_json_output($matches);
+}
+
+/**
+ * returns status if status is not empty,
+ * else returns the status array
+ */
+function arr_status($status = 0) {
+    $arr_status = array(
+      1 => t("Addln info reqd"),
+      2 => t("Already Issued"),
+      3 => t("Commercial Issue"),
+      4 => t("Dispatched"),
+      5 => t("Disposition closed"),
+      // 6 => t("Do not follow up"),
+      7 => t("E1 Form"),
+      8 => t("Incorrect contact"),
+      9 => t("Installation pending"),
+      10 => t("Invoice copy required"),
+      11 => t("Lost C Forms"),
+      12 => t("Need alt number"),
+      13 => t("Need to follow up"),
+      14 => t("No Contact details"),
+      15 => t("Not C Form Sales"),
+      16 => t("Not to follow"),
+      17 => t("Others"),
+      18 => t("Sent details"),
+      19 => t("Sent PO details"),
+      20 => t("Statutory Limitation"),
+      21 => t("Under process"),
+      22 => t("Way bill required"),
+      23 => t("Wrong Issuance"),
+      24 => t("Sales Reversal"),
+      25 => t("Call Back"),
+    );
+    if (empty($status)) {
+        return $arr_status;
+    }
+    elseif ($status == 100) {
+        return "";
+    }
+    else {
+        return $arr_status[$status];
+    }
+}
+
+function arr_collectable($status = 0) {
+    $arr_collectable = array(
+      1 => t("Not specified"),
+      2 => t("Not collectable"),
+      3 => t("Collectable"),
+      4 => t("Form Received"),
+    );
+    if (empty($status)) {
+        return $arr_collectable;
+    }
+    else {
+        return $arr_collectable[$status];
+    }
+}
+
+function arr_agents($agent = 0) {
+    $arr_agents = array(
+      1 => t("Not specified"),
+      2 => t("Radhiga"),
+      3 => t("Divya"),
+      4 => t("Harshad"),
+    );
+    if (empty($agent)) {
+        return $arr_agents;
+    }
+    else {
+        return $arr_agents[$agent];
+    }
+}
+
+//to convert windows timestamp to date('d/m/Y') format..
+function date_convert($value = '') {
+    try {
+        if (!empty($value) && is_numeric($value)) {
+            $dt = ($value - 25569) * 86400;
+            $date = new DateTime("@$dt");
+            return $date->format('d/m/Y');
+        }
+        elseif (!empty($value) && is_string($value)) {
+            return $value;
+        }
+    }
+    catch (Exception $ex) {
+        
+    }
+    return '';
+}
+
+/**
+ * 
+ * function that returns an array in asc or desc order.
+ */
+function array_orderby() {
+    $args = func_get_args();
+    $data = array_shift($args);
+    foreach ($args as $n => $field) {
+        if (is_string($field)) {
+            $tmp = array();
+            foreach ($data as $key => $row)
+                $tmp[$key] = $row[$field];
+            $args[$n] = $tmp;
+        }
+    }
+    $args[] = &$data;
+    call_user_func_array('array_multisort', $args);
+    return array_pop($args);
+}
+
+/*
+  function arr_year($status = 0) {
+  $years = db_select('c_form_pendency', 'e')
+  ->fields('e', array('finantial_year'))//SELECT the fields from node
+  ->distinct()
+  ->condition('finantial_year', NULL, 'IS NOT')
+  ->orderBy('e.finantial_year', 'ASC')
+  ->execute();
+  $finantial_year = array();
+  foreach ($years as $year) {
+  foreach ($year as $yr) {
+  $finantial_year[] = $yr;
+  }
+  }
+
+  if (empty($status)) {
+  return $finantial_year;
+  }
+  else {
+  return $finantial_year[$status];
+  }
+  }
+ */
+/* -------------------------------------- end ------------------------------- */
+
+/**
+ * Implements hook_views_api().
+ */
+function main_views_api() {
+    return array(
+      'api' => 3,
+      'path' => drupal_get_path('module', 'main.views') . '/sites/default/modules/main/views',
+    );
+}
+
+//"C:\wamp\www\www.KenGroup.com\sites\default\modules\main\views\main.views.inc"
+
+/**
+ * to find the number of comments
+ */
+function find_no_comments(&$form_state) {
+    
+}
+
+/*
+ * dialer functions.....
+ */
+
+function get_available_campaign_names() {
+    $result = drupal_http_request('http://cloudagent.in/cloudAgentRestAPI/index.php/CloudAgent/CloudAgentAPI/availCampaigns/api_key/KK7efb6760e6b8eb23dadb71883f4be743/user_name/ken_group');
+    $xml = simplexml_load_string(trim($result->data));
+    $Campaign = array();
+    foreach ($xml->message->CallDetails as $CallDetails) {
+        $Campaign[] = (string) $CallDetails->Campaign;
+    }
+    return $Campaign;
+}
+
+function get_online_agent_names() {
+    $result = drupal_http_request('http://cloudagent.in/cloudAgentRestAPI/index.php/CloudAgent/CloudAgentAPI/getAgentLogins/api_key/KK7efb6760e6b8eb23dadb71883f4be743/username/Ken_Group');
+    $xml = simplexml_load_string(trim($result->data));
+    $agents = array();
+    foreach ($xml->message->AgentDetails as $agent_details) {
+        $agents[] = (string) $agent_details->AgentId;
+    }
+    return $agents;
+}
+
+function get_call_logs($campaign, $latest = 0) {
+    if ($latest) {
+        $f_date = format_date(time() - 86400, 'custom', 'Y%2\Dm%2\Dd');
+        $f_time = '%2000%3A00%3A00';
+        $from_date = ($f_date . $f_time);
+    }
+    else {
+        $f_date = format_date(time() - 2592000, 'custom', 'Y%2\Dm%2\Dd');
+        $f_time = format_date(time(), 'custom', '%20H%3\Ai%3\As');
+        //$f_time = '%2000%3A00%3A00';
+        $from_date = ($f_date . $f_time);
+    }
+//    $f_date = format_date(time() - 2592000, 'custom', 'Y%2\Dm%2\Dd');
+//    $f_time = format_date(time(), 'custom', '%20H%3\Ai%3\As');
+//    //$f_time = '%2000%3A00%3A00';
+//    $from_date = ($f_date . $f_time);
+
+    $t_date = format_date(time(), 'custom', 'Y%2\Dm%2\Dd');
+    $t_time = format_date(time(), 'custom', '%20H%3\Ai%3\As');
+    $to_date = ($t_date . $t_time);
+    if (!empty($campaign)) {
+        $result = drupal_http_request("http://cloudagent.in/cloudAgentRestAPI/index.php/CloudAgent/CloudAgentAPI/getCallLogs"
+            . "/api_key/KK7efb6760e6b8eb23dadb71883f4be743/user_name/Ken_Group/campaign_name/$campaign"
+            . "/from_date/$from_date/to_date/$to_date");
+    }
+    return $result;
+}
+
+function get_voicemail($campaign, $ucid) {
+    $audio_file = NULL;
+    if (!empty($ucid)) {
+        $result = get_call_logs($campaign);
+        $xml = simplexml_load_string(trim($result->data));
+
+        foreach ($xml->message->CallDetails as $CallDetails) {
+            if ($CallDetails->UCID == $ucid) {
+                $audio_file = t((string) $CallDetails->AudioFile);
+                break;
+            }
+        }
+    }
+    return $audio_file;
+}
+
+function ajax_view_call_log($form, $form_state) {
+//    $f_date = format_date(time() - 2592000, 'custom', 'Y%2\Dm%2\Dd');
+//    $f_time = format_date(time(), 'custom', '%20H%3\Ai%3\As');
+//    $from_date = ($f_date . $f_time);
+//
+//    $t_date = format_date(time(), 'custom', 'Y%2\Dm%2\Dd');
+//    $t_time = format_date(time(), 'custom', '%20H%3\Ai%3\As');
+//    $to_date = ($t_date . $t_time);
+    $arr_camp = get_available_campaign_names();
+    $campaign = $arr_camp[$form_state['values']['txt_campaign']];
+    /* $f_date = format_date(strtotime($form_state['input']['from_date']['date']), 'custom', 'Y%2\Dm%2\Dd');
+      $f_time = format_date(strtotime($form_state['input']['from_date']['time']), 'custom', '%20H%3\Ai%3\As');
+      $from_date = ($f_date . $f_time);
+
+      $t_date = format_date(strtotime($form_state['input']['to_date']['date']), 'custom', 'Y%2\Dm%2\Dd');
+      $t_time = format_date(strtotime($form_state['input']['to_date']['time']), 'custom', '%20H%3\Ai%3\As');
+      $to_date = ($t_date . $t_time);
+     */
+    $result = get_call_logs($campaign);
+
+    $xml = simplexml_load_string(trim($result->data));
+    $audio_file = array();
+    // dpm($result);
+    $count = 0;
+    $latest = '';
+    foreach ($xml->message->CallDetails as $CallDetails) {
+//&& $count < 5
+        if (!empty($CallDetails->AudioFile) && $count < 5) {
+            $audio_file[] = array(t((string) $CallDetails->UCID), t((string) $CallDetails->DialedNumber),
+              t((string) $CallDetails->StartTime),
+              t(l('Play', (string) $CallDetails->AudioFile)),);
+
+            if ($count == 0) {
+                $latest = t((string) $CallDetails->UCID);
+            }
+            $count++;
+        }
+        elseif ($count >= 5) {
+            break;
+        }
+    }
+
+    //dpm($audio_file);
+    $form['dialer']['table_call_log']['#header'] = array('UCID', 'Name/No.', 'Call Time', 'Voice File',);
+    $form['dialer']['table_call_log']['#rows'] = $audio_file;
+    $form['dialer']['table_call_log']['#empty'] = t('No data found');
+    $form['dialer']['voice_file']['#value'] = $latest;
+    return $form['dialer'];
+}
+
+/**
+ *
+ * param string $url
+ *    Full url to file to download
+ * param string $uri
+ *    Drupal uri of where to save file public://archive/test.pdf
+ * param int $save_mode
+ *    File save mode from drupal core, ex FILE_EXISTS_REPLACE
+ */
+function download_external_file($url, $uri, $save_mode = FILE_EXISTS_RENAME, $manage_file = TRUE) {
+
+    $url_info = parse_url($url);
+    $url_path_info = pathinfo($url_info['path']);
+
+    //This helps with filenames with spaces
+    $url = $url_info['scheme'] . '://' . $url_info['host'] . $url_path_info['dirname'] . '/' . rawurlencode($url_path_info['basename']);
+
+    //Need to remove the filename from the uri
+    $uri_target = file_uri_target($uri);
+    $uri_scheme = file_uri_scheme($uri);
+    $uri_path_info = pathinfo($uri_target);
+    $directory = file_stream_wrapper_uri_normalize($uri_scheme . "://" . $uri_path_info['dirname']);
+
+    if (file_prepare_directory($directory, FILE_CREATE_DIRECTORY)) {
+        $drupal_result = drupal_http_request($url);
+        if (!empty($drupal_result->data)) {
+            $path = file_stream_wrapper_uri_normalize($uri);
+            if ($manage_file) {
+                $new_file = file_save_data($drupal_result->data, $path, $save_mode);
+            }
+            else {
+                return file_unmanaged_save_data($drupal_result->data, $path, $save_mode);
+            }
+        }
+        else {
+            drupal_set_message("Error downloading file, no data recieved for " . $url);
+            return FALSE;
+        }
+
+        $new_file->display = 1;
+        return (array) $new_file;
+    }
+    else {
+        drupal_set_message("Could not create directory");
+    }
+}
+
+function get_fileName($filePath) {
+    $fileName = 'unknown.mp3';
+    $filePath = preg_split("/:/", $filePath);
+    $new = $filePath[1];
+    $filePath = preg_split("/\//", $new);
+    $fileName = $filePath[4];
+    return $fileName;
+}
+
+//ajax_download_all_voicefile
+
+function ajax_download_all_voicefile($form, $form_state) {
+    $arr_camp = get_available_campaign_names();
+    $count = 0;
+    foreach ($arr_camp as $camps) {
+        $result = get_call_logs($camps);
+        $xml = simplexml_load_string(trim($result->data));
+        $url = '';
+        foreach ($xml->message->CallDetails as $CallDetails) {
+
+            if (!empty($CallDetails->AudioFile)) {
+                $url = (string) $CallDetails->AudioFile;
+                $filename = get_fileName((string) $CallDetails->AudioFile);
+                $uri = 'public://audio/' . $filename;
+                $new_file = download_external_file($url, $uri, FILE_EXISTS_REPLACE);
+                $count++;
+                // dpm($filename);
+                if ($new_file) {
+                    // $node->name_of_my_filefield[X][] = $new_file;
+                    // node_save($node);
+                }
+                else {
+                    drupal_set_message("Download failed");
+                }
+            }
+        }
+    }
+    //dpm($count .' files downloaded');
+}
+
+//ajax_download_latest_voicefile
+
+function ajax_download_latest_voicefile($form, $form_state) {
+    $arr_camp = get_available_campaign_names();
+    $count = 0;
+    foreach ($arr_camp as $camps) {
+        $result = get_call_logs($camps, 1);
+        $xml = simplexml_load_string(trim($result->data));
+        $url = '';
+        foreach ($xml->message->CallDetails as $CallDetails) {
+
+            if (!empty($CallDetails->AudioFile)) {
+                $url = (string) $CallDetails->AudioFile;
+                $filename = get_fileName((string) $CallDetails->AudioFile);
+                $uri = 'public://audio/' . $filename;
+                $new_file = download_external_file($url, $uri, FILE_EXISTS_REPLACE);
+                $count++;
+                // dpm($filename);
+                if ($new_file) {
+                    // $node->name_of_my_filefield[X][] = $new_file;
+                    // node_save($node);
+                }
+                else {
+                    drupal_set_message("Download failed");
+                }
+            }
+        }
+    }
+    //dpm($count .' files downloaded');
+}
+
+function get_invoice_comments($val = 0) {
+    $output = '';
+    $result1 = db_select('c_form_pendency', 'c')
+        ->fields('c', array('sap_customer_code', 'quarter', 'bill_state'))
+        ->condition('sr_no', $val)
+        ->execute();
+    $entries = $result1;
+    $entry = $entries->fetchObject();
+    $inv_result = db_select('c_form_pendency', 'i')
+        ->fields('i', array('sr_no'))
+        ->condition('sap_customer_code', $entry->sap_customer_code)
+        ->condition('quarter', $entry->quarter)
+        ->condition('bill_state', $entry->bill_state)
+        ->execute();
+    foreach ($inv_result as $t) {
+        $result = db_select('invoice_comments', 'c')
+            ->fields('c', array('comments', 'date', 'author'))
+            ->condition('sr_no', $t->sr_no)
+            ->execute();
+        if (isset($result) && !empty($result)) {
+            foreach ($result as $comment) {
+                //$output = $output . " $comment->comments(by $comment->author on $comment->date), ";
+                $output = $output . " $comment->comments($comment->date), ";
+            }
+        }
+        else {
+            $output = 'empty';
+        }
+    }
+
+    /*
+     * ->condition('sap_customer_code', $form_state['values']['sap_customer_code'])
+      ->condition('quarter', $form_state['values']['quarter'])
+      ->condition('bill_state', $form_state['values']['bill_state'])
+     */
+    //dpm($entry);
+//    $result = db_select('invoice_comments', 'c')
+//        ->fields('c', array('comments', 'date', 'author'))
+//        ->condition('sr_no', $val)
+//        ->execute();
+//    if (isset($result) && !empty($result)) {
+//        foreach ($result as $comment) {
+//            //$output = $output . " $comment->comments(by $comment->author on $comment->date), ";
+//            $output = $output . " $comment->comments($comment->date), ";
+//        }
+//    }
+//    else {
+//        $output = 'empty';
+//    }
+
+    return $output;
+}
+
+function callback_details($data = '') {
+
+    // dpm('callback details : ');
+    //dpm($_POST['q']);
+    watchdog('url_get_data', $_GET['q']);
+    watchdog('url_request_data', $_REQUEST['q']);
+    //$dump = var_dump($_REQUEST['q']);
+    watchdog('url_vardump_request_data', var_dump_pre($_REQUEST['q']));
+
+    // dpm($data);
+    $test = $data;
+    $data = preg_split("/,/", $data);
+    $new = $data[0];
+    $data = preg_split("/\"/", $new);
+    $new = $data[3];
+
+    if (!empty($new)) {
+//        db_insert('ken_callback_data')
+//            ->fields(array(
+//              'data' => $new,
+//            ))
+//            ->execute();
+    }
+    else {
+//        db_insert('ken_callback_data')
+//            ->fields(array(
+//              'data' => $test,
+//            ))
+//            ->execute();
+    }
+}
+
+function var_dump_pre($mixed = null) {
+    ob_start();
+    var_dump($mixed);
+    $content = ob_get_contents();
+    ob_end_clean();
+    return $content;
+}

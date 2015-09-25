@@ -1,0 +1,297 @@
+<?php
+
+/**
+ * Implement hook_permission().
+ */
+function invoice_importer_permission() {
+    return array(
+      'invoice_importer feeds' => array(
+        'title' => t('Download feeds errors')),
+    );
+}
+
+/**
+ * Implements hook_enable().
+ */
+function invoice_importer_enable() {
+    //clear the cache to display in Feeds as available plugin.
+    cache_clear_all('plugins:feeds:plugins', 'cache');
+}
+
+/**
+ * Implements of hook_feeds_plugins().
+ */
+function invoice_importer_feeds_plugins() {
+    $info = array();
+
+    $info['invoiceUpload'] = array(
+      'name' => 'Upload Invoices',
+      'description' => 'Imports the invoices and saves in database',
+      'handler' => array(
+        'parent' => 'FeedsProcessor', // A plugin needs to derive either directly or indirectly from FeedsFetcher, FeedsParser or FeedsProcessor.
+        'class' => 'invoiceUpload',
+        'file' => 'invoiceUpload.inc',
+        'path' => drupal_get_path('module', 'invoice_importer'),
+      ),
+    );
+
+    return $info;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+  function invoice_importer_block_info() {
+  $block['invoice_importer_status'] = array('info' => t('Upload Invoice Status'));
+  return $block;
+  }
+
+  /**
+ * Implements hook_block_view().
+ */
+  function invoice_importer_block_view($delta) {
+  $cached = cache_get('invoice_importer_status');
+  if (is_object($cached)) {
+  if (isset($cached->data['errors']) && !empty($cached->data['errors'])) {
+  $block['subject'] = t('Errors in Upload');
+  $block['content'] = '<div>' . t('Errors occured in upload. Rows with error have not been upload. Correct the errors and upload.') . '</div>'
+  . '<div>' . l(t('Download errors'), 'ut/upload/errors-download') . '   |   ' .
+  l(t('Clear errors'), 'ut/upload/status/' . arg(1)) . '</div>';
+  return $block;
+  }
+  }
+  }
+
+  /**
+ * Implements hook_menu().
+ */
+function invoice_importer_menu() {
+    $items['ut/upload/status/%'] = array(
+      'title' => 'Upload Invoice Status',
+      'page callback' => 'invoice_importer_clear_errors',
+      'page arguments' => array(3),
+      'access arguments' => array('invoice_importer feeds'),
+      'type' => MENU_CALLBACK,
+    );
+    $items['ut/upload/errors-download'] = array(
+      'title' => 'Download Errors',
+      'page callback' => 'invoice_importer_errors_download',
+      'access arguments' => array('invoice_importer feeds'),
+      'type' => MENU_CALLBACK,
+    );
+
+
+    return $items;
+}
+  
+  function invoice_importer_clear_errors($path) {
+  cache_clear_all('invoice_importer_status', 'cache');
+  drupal_set_message(t('Upload errors cleared.'));
+  drupal_goto('import/' . $path);
+  }
+
+  function invoice_importer_errors_download() {
+  $cached = cache_get('invoice_importer_status');
+  $errors = $cached->data['errors'];
+  header('Content-type: text/csv; charset=utf-8');
+  header('Content-disposition: attachment; filename=errors.csv');
+  //send the header
+  //send the rows
+  foreach ($errors as $msg) {
+  echo str_replace('"', '""', $msg) . "\n";
+  }
+  exit();
+  } 
+
+/**
+ * get the tid of the term based on name
+ */
+  function invoice_importer_get_tid($name, $vocabulary, $comma = FALSE) {
+  $tidarr = array();
+  static $data = array();
+
+  if (!isset($data[$vocabulary])) {
+  $query = db_select('taxonomy_term_data', 'td');
+  $query->innerjoin('taxonomy_vocabulary', 'v', 'v.vid = td.vid');
+  $query->fields('td', array('tid', 'name'));
+  $query->condition('machine_name', $vocabulary);
+  $result = $query->execute();
+  foreach ($result as $row) {
+  $data[$vocabulary][strtolower($row->name)] = $row->tid;
+  }
+  }
+
+  $name = strtolower($name);
+  if ($comma) {
+  $namearr = explode(',', $name);
+  foreach ($namearr as $name) {
+  if (isset($data[$vocabulary][$name])) {
+  $name = preg_replace('/[^(\x20-\x7F)] *//* ', '', $name);
+  $tidarr[] = $data[$vocabulary][$name];
+  }
+  else
+  return 0;
+  }
+  if (!empty($tidarr)) {
+  return $tidarr;
+  }
+  }
+  else {
+  if (isset($data[$vocabulary][$name])) {
+
+  return $data[$vocabulary][$name];
+  }
+  }
+  return 0;
+  }
+
+  /**
+ * validate date
+ */
+  function invoice_importer_valid_date($date) {
+  if (preg_match("/(\d{2})-(\d{2})-(\d{4})$/", $date, $matches)) {
+  return (checkdate((int) $matches[2], (int) $matches[1], (int) $matches[3]) );
+  }
+  else {
+  return false;
+  }
+  }
+
+  /**
+ * function to reset fields for employee import
+ * @param type $data
+ */
+  function invoice_importer_unsetfields(&$data) {
+  if (isset($data['password']))
+  unset($data['password']);
+  if (isset($data['email']))
+  unset($data['email']);
+  }
+
+  /**
+ * function to get taxonomy term
+ * @param type $vid
+ * @param type $parent
+ * @param type $max_depth
+ * @param type $load_entities
+ * @param type $all
+ * @return string
+ */
+  function invoice_importer_get_term_list($vid, $parent = 0, $max_depth = NULL, $load_entities = FALSE, $all = FALSE) {
+  $output = array();
+  if ($parent == -1) {
+  //taxonomy_get_tree does not get only the first level. so we do it here
+  $query = db_select('taxonomy_term_data', 'td')->fields('td', array('tid', 'name'))
+  ->condition('td.vid', $vid);
+  $query->innerjoin('taxonomy_term_hierarchy', 'th', 'th.tid = td.tid');
+  $query->innerJoin('taxonomy_vocabulary', 'tv', 'tv.vid = td.vid');
+  // $query->leftJoin('field_data_field_end_date', 'fd', 'fd.entity_id = td.tid
+  // AND fd.bundle = tv.machine_name AND fd.entity_type = :entity_type', array(':entity_type' => 'taxonomy_term'));
+  $output = $query->condition('parent', 0)->execute()->fetchAllKeyed();
+  asort($output);
+  //$output[0] = t('Select');
+  }
+  elseif ($parent > 0 || $all) {
+  $term_tree = taxonomy_get_tree($vid, $parent, $max_depth, taxonomy_get_tree($vid, $parent));
+  foreach ($term_tree as $record) {
+  //don't select expired items
+  if (!isset($record->field_end_date) || empty($record->field_end_date['und'][0]['value'])) {
+  $output[$record->tid] = str_repeat('-', $record->depth) . $record->name;
+  }
+  }
+  asort($output);
+  }
+  return $output;
+  }
+
+  /**
+ * function to save lx drivers
+ * @param type $name
+ * @param type $vid
+ * @param type $parent
+ * @return type
+ *//*
+  function invoice_importer_taxonomy_save($name, $vid, $parent = 0) {
+  $term = new stdClass();
+  $term->name = $name;
+  $term->vid = $vid;
+  //$term->tval[LANGUAGE_NONE]['0']['value'] = $tval;
+  if (!empty($parent)) {
+  $term->parent = $parent;
+  }
+  taxonomy_term_save($term);
+  return $term->tid;
+  }
+
+  /*
+ * customer employee level
+ */
+
+  function invoice_importer_custemplevels($key = 0) {
+  return invoice_importer_custemplevels($key);
+  }
+
+  /**
+ * check customer employee level
+ * @param type $level
+ * @return boolean
+ */
+
+  function invoice_importer_valid_custlevel_check($level) {
+  if (array_search($level, invoice_importer_custemplevels())) {
+  return TRUE;
+  }
+  else {
+  return FALSE;
+  }
+  }
+
+  function invoice_importer_emplevels($key = 0) {
+  return invoice_importer_emplevels($key);
+  }
+
+  function invoice_importer_valid_emplevel_check($level) {
+  if (array_search($level, invoice_importer_emplevels())) {
+  return TRUE;
+  }
+  else {
+  return FALSE;
+  }
+  }
+
+  function invoice_importer_rootcause($key = 0) {
+  static $root_cause;
+  if (!isset($root_cause)) {
+  $root_cause = array(
+  1 => t('Yes'),
+  0 => t('No'),
+  );
+  }
+  if (empty($key)) {
+  return $root_cause;
+  }
+  else {
+  return $root_cause[$key];
+  }
+  }
+
+  function invoice_importer_valid_root_cause($root) {
+  if (in_array($root, invoice_importer_rootcause())) {
+  return TRUE;
+  }
+  else {
+  return FALSE;
+  }
+  }
+ 
+
+/*
+function test() {
+    drupal_add_js('jQuery(document).ready(function () {confirm("do you want to update or reject?"); });', array(
+      'type' => 'inline',
+      'scope' => 'footer',
+      'group' => JS_THEME,
+      'weight' => 5,
+    ));
+}*/
+

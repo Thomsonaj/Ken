@@ -1,0 +1,52 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+function myservice_schema() {
+  $schema = array();
+  _myservice_flower($schema);
+  return $schema;
+}
+
+function _myservice_flower(&$schema) {
+  $schema['flower'] = array
+    (
+    'description' => 'this table contains the details of the flower',
+    'fields' => array
+      (
+      'fid' => array
+        (
+        'description' => 'The primary identifier for a flower.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'fname' => array
+        (
+        'description' => 'Name of flower.',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE,
+      ),
+      'color' => array
+        (
+        'description' => 'Color of flower.',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => FALSE,
+      ),
+      'uid' => array
+        (
+        'type' => 'int',
+        'description' => "user id",
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ),
+    ),
+    'primary key' => array('fid'),
+  );
+}

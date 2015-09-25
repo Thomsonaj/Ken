@@ -1,0 +1,69 @@
+name = Smart Commerce Metronic 1.5.3
+description = Responsive Admin Dashboard Template build with Twitter Bootstrap 3.0
+package = Core
+core = 7.x
+
+dependencies[] = customerror
+dependencies[] = php
+
+;BEGIN GLOBAL MANDATORY STYLES      
+stylesheets[all][] = assets/plugins/font-awesome/css/font-awesome.min.css
+stylesheets[all][] = assets/plugins/bootstrap/css/bootstrap.min.css
+stylesheets[all][] = assets/plugins/uniform/css/uniform.default.css
+;END GLOBAL MANDATORY STYLES
+;BEGIN PAGE LEVEL STYLES
+stylesheets[all][] = assets/plugins/select2/select2_metro.css
+;END PAGE LEVEL STYLES
+;BEGIN THEME STYLES
+stylesheets[all][] = assets/css/style-metronic.css
+stylesheets[all][] = assets/css/style.css
+stylesheets[all][] = assets/css/style-responsive.css
+stylesheets[all][] = assets/css/plugins.css
+stylesheets[all][] = assets/css/themes/light.css
+stylesheets[all][] = assets/css/pages/login.css
+stylesheets[all][] = assets/css/pages/error.css
+stylesheets[all][] = assets/css/custom.css
+stylesheets[all][] = assets/css/metronic.css
+stylesheets[print][] = assets/css/print.css
+;stylesheets[all][] = assets/css/tablet.css
+
+;END THEME STYLES
+
+;BEGIN CORE PLUGINS
+scripts[] = assets/plugins/jquery-1.10.2.min.js
+scripts[] = assets/plugins/jquery-migrate-1.2.1.min.js
+;IMPORTANT! Load jquery-ui-1.10.3.custom.min.js before bootstrap.min.js to fix bootstrap tooltip conflict with jquery ui tooltip
+scripts[] = assets/plugins/jquery-ui/jquery-ui-1.10.3.custom.min.js      
+scripts[] = assets/plugins/bootstrap/js/bootstrap.min.js
+scripts[] = assets/plugins/bootstrap-hover-dropdown/twitter-bootstrap-hover-dropdown.min.js
+scripts[] = assets/plugins/jquery-slimscroll/jquery.slimscroll.min.js
+scripts[] = assets/plugins/jquery.blockui.min.js  
+scripts[] = assets/plugins/jquery.cookie.min.js
+scripts[] = assets/plugins/uniform/jquery.uniform.min.js
+scripts[] = assets/plugins/uniform/jquery.uniform.js
+;END CORE PLUGINS
+scripts[] = assets/scripts/app.js
+scripts[] = assets/scripts/custom.js
+
+features[] = logo
+features[] = favicon
+
+settings[toggle_logo] = 1
+settings[toggle_favicon] = 1
+settings[toggle_theme_header] = 'default'
+settings[toggle_theme_footer] = 'default'
+settings[toggle_theme_sidebar] = 'default'
+
+regions[sidebar_first]  = Left sidebar
+regions[sidebar_second]  = Right sidebar
+regions[content_frozen] = Frozen Content Bar
+regions[content] = Content
+regions[header] = Header
+regions[footer] = Footer
+regions[page_top] = Page Top
+regions[page_bottom] = Page Bottom
+
+regions_hidden[] = header
+regions_hidden[] = footer
+regions_hidden[] = page_top
+regions_hidden[] = page_bottom

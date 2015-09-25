@@ -1,0 +1,27 @@
+
+#awesome_fonts {
+  z-index: 1500;
+  display:none;
+}
+
+.cancel {
+  color:#FF0F0F;
+}
+
+#awesome_fonts i {
+  margin-right:15px;
+}
+
+#awesome_fonts .cancel i {
+  margin-right:5px;
+}
+
+.awesome {
+  margin-left:5px;
+}
+
+#awesome_fonts div {
+  float:left;
+  width:30%;
+}
+

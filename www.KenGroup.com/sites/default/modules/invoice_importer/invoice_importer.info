@@ -1,0 +1,7 @@
+name = Invoice Importer
+description = Imports all invoices from xls file
+core = 7.x
+package = Ken Group
+dependencies[] = feeds
+files[] = invoiceUpload.inc
+files[] = invoice_importer.install

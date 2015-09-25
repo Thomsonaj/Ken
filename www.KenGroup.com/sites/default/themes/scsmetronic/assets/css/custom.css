@@ -1,0 +1,20 @@
+.action-links li {
+  list-style: none;
+}
+
+.resizable-textarea .grippie {
+  display:none;
+}
+
+.form-textarea-wrapper textarea,
+.form-control {
+  width:auto ;
+}
+
+.form-type-date-popup label {
+  float:left;
+}
+
+label {
+  font-weight: bold;
+}

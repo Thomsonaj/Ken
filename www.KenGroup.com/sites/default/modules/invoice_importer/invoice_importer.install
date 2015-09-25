@@ -1,0 +1,282 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+function invoice_importer_schema() {
+    $schema = array();
+    invoice_importer_c_form_pendency($schema);
+    return $schema;
+}
+
+function invoice_importer_c_form_pendency(&$schema) {
+    $schema['c_form_pendency'] = array
+      (
+      'description' => 'ken invoice details',
+      'fields' => array
+        (
+        'sr_no' => array
+          (
+          'type' => 'serial',
+          'description' => t('serial number'),
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        
+        'cust_inv' => array
+          (
+          'type' => 'varchar',
+          'length' => 100,
+          'not null' => TRUE,
+        ),
+        'sap_customer_code' => array
+          (
+          'type' => 'varchar',
+          'length' => 100,
+        ),
+        'goods_supplied_from_state' => array
+          (
+          'type' => 'varchar',
+          'length' => 100,
+        ),
+       /* 'vc_comp_code' => array
+          (
+          'type' => 'varchar',
+          'length' => 100,
+        ),
+        'vc_comp_initial' => array
+          (
+          'type' => 'varchar',
+          'length' => 100,
+        ),*/
+        'invoice_number' => array
+          (
+          'type' => 'varchar',
+          'length' => '100',
+          //'not null' => TRUE,
+        ),
+        'customer_name' => array
+          (
+          'type' => 'varchar',
+          'length' => 200,
+        ),
+        'customer_address' => array
+          (
+          'type' => 'varchar',
+          'length' => 250,
+        ),
+       /* 'customer_location' => array
+          (
+          'type' => 'varchar',
+          'length' => 150,
+        ),*/
+        'customer_contact' => array
+          (
+          'type' => 'varchar',
+          'length' => 500,
+        ),
+       /* 'customer_mobile' => array
+          (
+          'type' => 'varchar',
+          'length' => 225,
+        ),*/
+        'contact_email' => array(
+          'type' => 'varchar',
+          'length' => 500,
+        ),
+        'quarter' => array(
+          'type' => 'varchar',
+          'length' => 30,
+        ),
+        'finantial_year' => array(
+          'type' => 'varchar',
+          'length' => 10,
+        ),
+        'invoice_date' => array(
+          'type' => 'varchar',
+          'length' => 10,
+        ),
+       /* 'month' => array(
+          'type' => 'varchar',
+          'length' => 20,
+        ),*/
+        'inv_amt' => array(
+          'type' => 'varchar',
+          'length' => 100,
+        ),
+       /* 'currency' => array(
+          'type' => 'varchar',
+          'length' => 20,
+        ),*/
+        'po_number' => array(
+          'type' => 'varchar',
+          'length' => 100,
+        ),
+        'tin_number' => array(
+          'type' => 'varchar',
+          'length' => 25,
+         // 'not null' => TRUE,
+        ),
+        'issue_c_form_to_entity_name' => array(
+          'type' => 'varchar',
+          'length' => 150,
+        ),
+        'form_type' => array(
+          'type' => 'varchar',
+          'length' => 100,
+        ),
+        'bill_state' => array(
+          'type' => 'varchar',
+          'length' => 25,
+        ),
+       /* 'region' => array(
+          'type' => 'varchar',
+          'length' => 100,
+        ),*/
+        'total_differential_tax_liability' => array(
+          'type' => 'varchar',
+          'length' => 100,
+        ),
+        'division_grouping' => array(
+          'type' => 'varchar',
+          'length' => 20,
+        ),
+        'sub_division' => array(
+          'type' => 'varchar',
+          'length' => 20,
+        ),
+       /* 'main_division' => array(
+          'type' => 'varchar',
+          'length' => 10,
+        ),
+        'sales_person_code' => array(
+          'type' => 'varchar',
+          'length' => 25,
+        ),
+        'sales_person_name' => array(
+          'type' => 'varchar',
+          'length' => 125,
+        ),*/
+        'status' => array(
+          'type' => 'int',
+          'default' => 100,
+          'unsigned' => TRUE,
+        ),
+        'collectable' => array(
+          'type' => 'int',
+          'default' => 1,
+          'unsigned' => TRUE,
+        ),
+        'current_email' => array(
+          'type' => 'varchar',
+          'length' => 225,
+        ),
+        'current_phone' => array(
+          'type' => 'varchar',
+          'length' => 225,
+        ),
+        'lost_case_wrong_issuance' => array(
+          'type' => 'varchar',
+          'length' => 225,
+        ),
+        'remarks' => array(
+          'type' => 'varchar',
+          'length' => 225,
+        ),
+        'focus_account' => array(
+          'type' => 'varchar',
+          'length' => 225,
+        ),
+        'feedback' => array(
+          'type' => 'varchar',
+          'length' => 225,
+        ),
+        'agent' => array(
+          'type' => 'int',
+          'default' => 1,
+          'unsigned' => TRUE,
+        ),
+      ),
+      'indexes' => array(
+        'sr_no' => array('sr_no'),
+        'cust_inv' => array('cust_inv'), //'index_name' => array('on which field this index applies')
+        'invoice_number' => array('invoice_number'),
+      ),
+      'primary key' => array('sr_no'),
+    );
+}
+
+function invoice_importer_update_1() {
+    if (!db_table_exists('c_form_pendency')) {
+        db_create_table('c_form_pendency', drupal_get_schema('c_form_pendency', TRUE));
+    }
+}
+
+function invoice_importer_update_2() {
+    if (!db_table_exists('c_form_pendency')) {
+        db_create_table('c_form_pendency', drupal_get_schema('c_form_pendency', TRUE));
+    }
+    else {
+        db_add_field('c_form_pendency', 'collectable', array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'default' => 1,
+        ));
+    }
+}
+/**
+* update table, add new fields(current_email and current_phone)
+ */
+function invoice_importer_update_3() {
+    if (!db_table_exists('c_form_pendency')) {
+        db_create_table('c_form_pendency', drupal_get_schema('c_form_pendency', TRUE));
+    }
+    else {
+        db_add_field('c_form_pendency', 'current_email', array(
+          'type' => 'varchar',
+          'length' => 225,
+        ));
+        db_add_field('c_form_pendency', 'current_phone', array(
+          'type' => 'varchar',
+          'length' => 225,
+        ));
+    }
+}
+/*
+ * create table if not exists..
+ */
+function invoice_importer_update_4() {
+    if (!db_table_exists('c_form_pendency')) {
+        db_create_table('c_form_pendency', drupal_get_schema('c_form_pendency', TRUE));
+    }
+}
+/**
+ * add new fields to the table(division_grouping and sub_division)
+ */
+function invoice_importer_update_5() {
+    if (!db_table_exists('c_form_pendency')) {
+        db_create_table('c_form_pendency', drupal_get_schema('c_form_pendency', TRUE));
+    }else{
+        db_add_field('c_form_pendency', 'division_grouping', array(
+          'type' => 'varchar',
+          'length' => 20,
+        ));
+        db_add_field('c_form_pendency', 'sub_division', array(
+          'type' => 'varchar',
+          'length' => 20,
+        ));
+    }
+}
+/**
+ * drop and create table c_form_pendency
+ */
+function invoice_importer_update_6() {
+    if (db_table_exists('c_form_pendency')) {
+        db_truncate('c_form_pendency');
+        db_drop_table('c_form_pendency');
+        db_create_table('c_form_pendency', drupal_get_schema('c_form_pendency', TRUE));
+    }
+}
